@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Voice Assistant</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #0f172a;
+            color: white;
+            text-align: center;
+            padding: 30px;
+        }
+        #chatbox {
+            width: 60%;
+            margin: auto;
+            height: 400px;
+            overflow-y: auto;
+            border: 1px solid #334155;
+            padding: 10px;
+            border-radius: 10px;
+            background: #1e293b;
+            text-align: left;
+        }
+        .user { color: #38bdf8; margin: 10px 0; }
+        .bot { color: #22c55e; margin: 10px 0; }
+        button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            background: #3b82f6;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+<h1>🎤 Voice Assistant</h1>
+
+<div id="chatbox"></div>
+
+<button onclick="startListening()">Speak</button>
+
+<script>
+const chatbox = document.getElementById("chatbox");
+
+// Speech Recognition
+const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+recognition.lang = "en-IN";
+
+
+recognition.onresult = function(event) {
+    const userText = event.results[0][0].transcript;
+    addMessage("You: " + userText, "user");
+    sendToServer(userText);
+};
+
+function startListening() {
+    recognition.start();
+}
+
+// Send message to Flask backend
+function sendToServer(message) {
+    fetch("/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: message })
+    })
+    .then(res => res.json())
+    .then(data => {
+        addMessage("Assistant: " + data.reply, "bot");
+        speak(data.reply);
+    });
+}
+
+// Add messages to chat UI
+function addMessage(text, className) {
+    const msg = document.createElement("div");
+    msg.className = className;
+    msg.innerText = text;
+    chatbox.appendChild(msg);
+    chatbox.scrollTop = chatbox.scrollHeight;
+}
+
+// Text-to-Speech
+function speak(text) {
+    const speech = new SpeechSynthesisUtterance(text);
+
+    // Detect Telugu characters
+    const teluguRegex = /[\u0C00-\u0C7F]/;
+
+    if (teluguRegex.test(text)) {
+        speech.lang = "te-IN";
+    } else {
+        speech.lang = "en-IN";
+    }
+
+    window.speechSynthesis.speak(speech);
+}
+
+</script>
+
+</body>
+</html>
