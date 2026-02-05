@@ -3,7 +3,7 @@ import requests
 
 app = Flask(__name__)
 
-OPENROUTER_API_KEY = "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"
+OPENROUTER_API_KEY = "your_api_key"
 
 def get_ai_reply(message):
     try:
@@ -55,3 +55,4 @@ def chat():
 
 if __name__ == "__main__":
     app.run(debug=True)
+
